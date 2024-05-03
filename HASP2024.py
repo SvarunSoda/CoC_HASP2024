@@ -12,6 +12,8 @@ import ModeControl
 import keyboard
 from RpiMotorLib import RpiMotorLib
 import RPi.GPIO
+import datetime
+import SunPosition
 
 def randint (min= 0x00, max = 0xFF):
     num = random.randbytes(1)
@@ -30,18 +32,47 @@ def input_module():
         #print(serialPort.read(94))
         bytesread = serialPort.readline()
         #print(bytesread)
-        elements = bytesread.decode().split(",")
-        if ((len(elements) > 1) and elements[1] == "$GPGGA"):
-            print ("Data: " + elements[2])
-            #print (elements)
-            #for item in elements:
-            #    print (str(item))
-        elif (elements[0] != ""):
-            print ("Command: " + str(elements[0][2:4]))
-            command_in = int(elements[0][3:4])
-            #print (str(elements[0][2:4]))
-        else:
-            print ("Nothing")    
+        if ((len(bytesread) == 125)  and
+            (bytesread[0]   == 0x01) and
+            (bytesread[1]   == 0x30) and
+            (bytesread[122] == 0x03) and
+            (bytesread[123] == 0x0D) and
+            (bytesread[124] == 0x0A)):
+                print ("GPS Data Received")
+                processbuffer = bytesread[2:]
+                elements = processbuffer.decode().split(",")
+                if ((len(elements) > 1) and elements[1] == "$GPGGA"):
+                    #print ("Data: " + elements[2])
+                    #print (elements)
+                    #for item in elements:
+                    #    if (len(item) != 0):
+                    #        print (item)
+                    localdatetime = datetime.datetime.fromtimestamp(float(elements[0]))
+                    utctime = datetime.datetime.strptime(elements[2][:-3],"%H%M%S")
+                    print ("Local Time: " + str(localdatetime))
+                    print ("UTC Time: " + str(utctime))
+                    deltagmt = localdatetime.hour - utctime.hour
+                    print ("Delta GMT: " + str(deltagmt))
+                    dayoftheyear = localdatetime.timetuple().tm_yday
+                    print ("Day of the Year: " + str(dayoftheyear))
+                    localtimehours = localdatetime.hour + localdatetime.minute / 60
+                    print ("Local Hours: " + str(localtimehours))
+                    longitude = float(elements[5][:3]) + float(elements[5][3:]) / 60
+                    if (elements[6] == "W"):
+                        longitude = -longitude
+                    print ("Longitude: " + str(longitude))
+                    latitude = float(elements[3][:2]) + float(elements[3][2:]) / 60
+                    if (elements[4] == "S"):
+                        latitude = -latitude
+                    print ("Latitude: " + str(latitude))
+                    sp = SunPosition.GetSunPosition(deltagmt, dayoftheyear, longitude, latitude, localtimehours)
+                    print ("Sun Position (Elevation, Azimuth): " + str(sp))
+                elif (elements[0] != ""):
+                    print ("Command: " + str(elements[0][2:4]))
+                    command_in = int(elements[0][3:4])
+                    #print (str(elements[0][2:4]))
+                else:
+                    print ("Nothing")    
         #for item in elements:
         #    print (str(item))
         if stop_input_thread:
@@ -108,7 +139,7 @@ while True:
     guider_image, status = AsiModule.get_guide_image_from_file()
     if status == 0:
         x_err, y_err = GuiderModule.calculate_error(guider_image)
-        print(x_err, y_err)
+        #print(x_err, y_err)
 
     if ModeControl.get_system_mode() == ModeControl.SystemMode.HUNT:
         RPi.GPIO.output(16, RPi.GPIO.LOW)
