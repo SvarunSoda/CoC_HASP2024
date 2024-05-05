@@ -57,24 +57,34 @@ def input_module():
                     print ("Day of the Year: " + str(dayoftheyear))
                     localtimehours = localdatetime.hour + localdatetime.minute / 60
                     print ("Local Hours: " + str(localtimehours))
-                    longitude = float(elements[5][:3]) + float(elements[5][3:]) / 60
-                    if (elements[6] == "W"):
-                        longitude = -longitude
-                    print ("Longitude: " + str(longitude))
-                    latitude = float(elements[3][:2]) + float(elements[3][2:]) / 60
-                    if (elements[4] == "S"):
-                        latitude = -latitude
-                    print ("Latitude: " + str(latitude))
+                    if (elements[7] != "0"):
+                        longitude = float(elements[5][:3]) + float(elements[5][3:]) / 60
+                        if (elements[6] == "W"):
+                            longitude = -longitude
+                        print ("Longitude: " + str(longitude))
+                        latitude = float(elements[3][:2]) + float(elements[3][2:]) / 60
+                        if (elements[4] == "S"):
+                            latitude = -latitude
+                        print ("Latitude: " + str(latitude))
                     sp = SunPosition.GetSunPosition(deltagmt, dayoftheyear, longitude, latitude, localtimehours)
                     print ("Sun Position (Elevation, Azimuth): " + str(sp))
-                elif (elements[0] != ""):
-                    print ("Command: " + str(elements[0][2:4]))
-                    command_in = int(elements[0][3:4])
-                    #print (str(elements[0][2:4]))
-                else:
-                    print ("Nothing")    
-        #for item in elements:
-        #    print (str(item))
+        elif ((len(bytesread) == 7)  and
+              (bytesread[0] == 0x01) and
+              (bytesread[1] == 0x02) and
+              (bytesread[4] == 0x03) and
+              (bytesread[5] == 0x0D) and
+              (bytesread[6] == 0x0A)):
+            print ("Command: " + str(bytesread[2]))
+            print ("Command: " + str(bytesread[3]))
+            payload_id = (bytesread[2] >> 4) & 0x0F
+            print (payload_id)
+            checksum = (bytesread[2] + bytesread[3]) & 0xFF
+            print (checksum)
+            if ((payload_id == 9) and (checksum == 0)):
+                command_in = bytesread[2] & 0x0F
+                print (command_in)
+        else:
+            print ("Nothing")    
         if stop_input_thread:
             serialPort.close()
             break
