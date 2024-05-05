@@ -10,6 +10,9 @@ class SystemMode(Enum):
     IDLE = 6
     EXIT = 9
 
+    def __int__(self):
+        return self.value
+
 system_mode = SystemMode.UNDEFIND
 
 def init_mode_control():
