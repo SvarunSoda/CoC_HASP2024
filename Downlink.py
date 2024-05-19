@@ -1,20 +1,19 @@
 import serial
-import struct
 import time
 
-def downlink(record_type: int,unix_time: float,port: serial.serialwin32.Serial) -> None:
-    sec=int(unix_time)
-    ns=int((unix_time-sec)*10**9)
-    bytes=struct.pack('3i',record_type,sec,ns)
-    while True:
-        if(port.is_open):
-            try:
-                port.write(bytes)
-                print('downlink sent')
-                port.close()
-            except:
-                print('could not write to ',port)
-            break
-        else:
-            print(port,' is not open')
-            break
+ser=serial.Serial(port="COM2", baudrate=9600, bytesize=8, timeout=5, stopbits=serial.STOPBITS_ONE, parity='N')
+def output(ser, temps, num_img, stats, imgs_accquired, volts):
+    b=bytearray(20)
+    b[0:1]=b'\x01' #start symbol
+    b[1:9]=bytes(temps) #temperature
+    b[9:11]=num_img.to_bytes(2) #number of images
+    b[11:14]=bytes(stats) #tracking status, last command status, heartbeat
+    b[14:16]=imgs_accquired.to_bytes(2) #images accquired
+    b[16:18]=bytes(volts) #5volt voltage, 12 volt voltage
+    b[18:20]=b'\x0a\x0d' #end symbol
+    ser.write(b)
+    print("sent")
+for _ in range(10):
+    output(ser,(12,13,12,14,12,19,8,19),192,(1,2,3),67,(2,4))
+    time.sleep()
+ser.close()
