@@ -1,0 +1,12 @@
+[
+    {
+        "name": "ZWO ASI678MC",
+        "gain": 1000,
+        "exposure": 1000
+    },
+    {
+        "name": "ZWO ASI585MC",
+        "gain": 1000,
+        "exposure": 1000
+    }
+]
