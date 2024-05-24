@@ -2,6 +2,9 @@ import zwoasi
 import cv2
 import numpy
 
+with open("CoC_HASP2024\\config.json",'r') as f:
+    config=json.load(f)
+
 def init_zwo_library():
     zwoasi.init('/home/vahid/Downloads/ASI_Camera_SDK/ASI_linux_mac_SDK_V1.33/lib/armv8/libASICamera2.so')
     return 0
@@ -9,8 +12,24 @@ def init_zwo_library():
 def get_num_cameras():
     return zwoasi.get_num_cameras()
 
-def get_guide_image():
-    camera = zwoasi.Camera(0)
+def get_guide_image(type="guide"):
+    match type:
+        case "guide":
+            type="ZWO ASI678MC"
+            gain=config[0]["gain"]
+            exposure=config[0]["exposure"]
+            camera.set_control_value(zwoasi.ASI_GAIN, gain)
+            camera.set_control_value(zwoasi.ASI_EXPOSURE, exposure)
+        case "science":
+            type="ZWO ASI585MC"
+            gain=config[1]["gain"]
+            exposure=config[1]["exposure"]
+            camera.set_control_value(zwoasi.ASI_GAIN, gain)
+            camera.set_control_value(zwoasi.ASI_EXPOSURE, exposure)
+        case _:
+            return 0, 1
+    camera_id=zwoasi.list_cameras().index(type)
+    camera = zwoasi.Camera(camera_id)
     camera.set_image_type(zwoasi.ASI_IMG_RAW8)
     camera.start_exposure()
     camera_status = camera.get_exposure_status()
