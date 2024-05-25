@@ -1,12 +1,18 @@
 [
     {
         "name": "ZWO ASI678MC",
-        "gain": 1000,
-        "exposure": 1000
+        "gain": 50,
+        "exposure": 1000,
+        "offset": 100,
+        "resx": 3840,
+        "resy": 2160
     },
     {
         "name": "ZWO ASI585MC",
-        "gain": 1000,
-        "exposure": 1000
+        "gain": 50,
+        "exposure": 1000,
+        "offset": 100,
+        "resx": 3840,
+        "resy": 2160
     }
 ]
