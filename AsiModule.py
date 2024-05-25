@@ -15,22 +15,24 @@ def get_num_cameras():
 def get_guide_image(type="guide"):
     match type:
         case "guide":
-            type="ZWO ASI678MC"
-            gain=config[0]["gain"]
-            exposure=config[0]["exposure"]
-            camera.set_control_value(zwoasi.ASI_GAIN, gain)
-            camera.set_control_value(zwoasi.ASI_EXPOSURE, exposure)
-        case "science":
+            type="ZWO ASI678MC" #camera name for guide
+            gain=config[0]["gain"] #get gain for guide
+            exposure=config[0]["exposure"] #get exposure for guide
+            resx=config[0]["resx"] #get x resolution
+            resy=config[0]["resy"] #get y resolution
+        case "science": #same as guide but for science camera
             type="ZWO ASI585MC"
             gain=config[1]["gain"]
             exposure=config[1]["exposure"]
-            camera.set_control_value(zwoasi.ASI_GAIN, gain)
-            camera.set_control_value(zwoasi.ASI_EXPOSURE, exposure)
+            resx=config[1]["resx"]
+            resy=config[1]["resy"]
         case _:
             return 0, 1
     camera_id=zwoasi.list_cameras().index(type)
     camera = zwoasi.Camera(camera_id)
     camera.set_image_type(zwoasi.ASI_IMG_RAW8)
+    camera.set_control_value(zwoasi.ASI_GAIN, gain) #set gain
+    camera.set_control_value(zwoasi.ASI_EXPOSURE, exposure) #set exposure
     camera.start_exposure()
     camera_status = camera.get_exposure_status()
     while camera_status == 1:
@@ -38,7 +40,7 @@ def get_guide_image(type="guide"):
     if camera_status == 2:
         img_array = camera.get_data_after_exposure()
         from PIL import Image
-        img_from_guide_camera = Image.frombuffer("L", (1280, 960), img_array)
+        img_from_guide_camera = Image.frombuffer("L", (resx, resy), img_array)
         ocv_image = cv2.cvtColor(numpy.array(img_from_guide_camera), cv2.COLOR_RGB2BGR)
         camera.close()
         return ocv_image, 0
