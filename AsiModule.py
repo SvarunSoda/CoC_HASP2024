@@ -3,8 +3,6 @@ import zwoasi
 import cv2
 import numpy
 import json
-import Motor
-import Photodiode
 
 with open("COC_HASP\\config.json",'r') as f:
     config=json.load(f) #exposure units in ms
