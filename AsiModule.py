@@ -8,14 +8,14 @@ with open("COC_HASP\\config.json",'r') as f:
     config=json.load(f) #exposure units in ms
     
 
-def init_zwo_library(self):
+def init_zwo_library():
         zwoasi.init("C:\\Users\\guhao\\OneDrive\\Desktop\\HASP\\ASICamera2.dll")
         return 0
 
-def get_num_cameras(self):
+def get_num_cameras():
         return zwoasi.get_num_cameras()
 
-def get_guide_image(self,type="guide")->tuple:
+def get_guide_image(type="guide")->tuple:
     match type:
         case "guide":
             type="ZWO ASI678MC" #camera name for guide
@@ -54,7 +54,7 @@ def get_guide_image(self,type="guide")->tuple:
         camera.close()
         return 0, 1
 
-def get_guide_image_from_file(self):
+def get_guide_image_from_file():
     img_array = cv2.imread("SunPic01.jpg")
     from PIL import Image
     img_from_guide_camera = Image.frombuffer("L", (3840, 2160), img_array)
